@@ -1,0 +1,10 @@
+{
+  "state_dump": {
+    "name": "state dump",
+    "cmd": "state"
+  },
+  "quit": {
+    "name": "quit",
+    "cmd": "quit"
+  }
+}

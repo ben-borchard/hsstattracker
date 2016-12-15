@@ -1,0 +1,52 @@
+{
+  "warrior": {
+    "type": "hero",
+    "hero_power": {
+      "standard": {
+        "armor": "2"
+      },
+      "justicar": {
+        "armor": "4"
+      }
+    }
+  },
+  "rogue": {
+    "type": "hero",
+    "hero_power": {
+      "standard": {
+        "weapon": {
+          "attack": "1",
+          "durability" :"2"
+        }
+      },
+      "justicar": {
+        "case": {
+          "has_weapon": {
+            "weapon_dmg": "1"
+          },
+          "else": {
+            "weapon": {
+              "attack": "1",
+              "durability": "2"
+            }
+          }
+        }
+      }
+    }
+  },
+  "war_axe": {
+    "type": "weapon",
+    "effects": {
+      "weapon": {
+        "attack": "3",
+        "durability": "2"
+      }
+    }
+  },
+  "river_crock": {
+    "type": "minion",
+    "attack": "2",
+    "health": "3",
+    "effects": {} 
+  }
+}
