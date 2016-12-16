@@ -14,5 +14,14 @@ module.exports = {
     return "\""+hero+"\" is not a recognized hero, please reenter a valid hero";
   }, 
 
+  unrecognizedCard: function(card) {
+    return "\n\""+card+"\" is not a recognized action or card, please enter the card played (see json file for list of valid card names) or a valid action:\n\n"+
+                                             "- play (card was played)\n"+
+                                             "- end turn (end of current turn)\n"+
+                                             "- attack (there was an attack made)\n"+
+                                             "- hero_power (current hero used hero power)\n"+
+                                             "- concede (current hero conceded)\n";
+  }
+
 
 }

@@ -6,15 +6,19 @@
 **/
 
 // requirements
-var actions = require("./function/actions.js");
-var cards = require("./cards/cards-test.json");
-var commands = require("./properties/commands.json");
-var messages = require("./properties/messages.js");
-var fs = require("fs");
-var locked = false;
+var actions =       require("./function/actions.js");
+var util =          require("./function/util.js");
+var cards =         require("./cards/cards-test.json");
+var commands =      require("./properties/commands.json");
+var messages =      require("./properties/messages.js");
+var util =          require("./function/util.js");
+var fs =            require("fs");
+
+
 
 // initialize variables
-var game_state = {
+var gameState = {
+  "turn": "hero_one",
   "hero_one": {
     "klass": "",
     "hero_power": {},
@@ -34,12 +38,13 @@ var game_state = {
     "immune": "false",
     "shield": "false"
   },
+  "triggers":{},
   "board": {
     "hero_one": {
-      "minions": {}
+      "minions": []
     },
     "hero_two": {
-      "minions": {}
+      "minions": []
     }
   },
   "secrets": {
@@ -50,21 +55,9 @@ var game_state = {
 var repl = "\n> ";
 var output = messages.firstHeroPrompt;
 
-// stop execution for until something has finished
-var wait = function() {
-  while (locked) {
-    console.log(locked)
-    var i;
-    var n = 0
-    for (i=0;i<1000000000;i++) {
-      n = n + 1;
-    }
-  }
-};
-
 // Get a pretty printed version of the game state object
 var gameStateStr = function() {
-  return JSON.stringify(game_state, null, 2)
+  return JSON.stringify(gameState, null, 2)
 };
 
 // Save the state of the game
@@ -85,6 +78,11 @@ var saveState = function(filename, exit) {
   }
 };
 
+var initializeHero = function(gameState, hero, heroClass) {
+  gameState[hero]["klass"] = heroClass;
+  gameState[hero]["hero_power"] = util.clone(cards[heroClass]["hero_power"]["standard"]);
+}
+
 // configure repl mechanism
 process.stdin.resume();
 process.stdin.setEncoding("utf8");
@@ -93,16 +91,17 @@ process.stdin.setEncoding("utf8");
 process.stdout.write(output+repl);
 process.stdin.on('data', function(text) {
   text = text.trim()
+  var cmd = text.split(" ");
 
   // quitting
-  if (game_state.quitting) {
+  if (gameState.quitting) {
     if (text === "y") {
       saveState("state.txt", true);
     } else if (text === "n") {
       process.exit();
     } else if (text === "c") {
       output = lastoutput;
-      game_state.quitting = false;
+      gameState.quitting = false;
     } else {
       output = messages.quit;
     }
@@ -110,12 +109,11 @@ process.stdin.on('data', function(text) {
   else if (text === commands.quit.cmd) {
     lastoutput = output;
     output = messages.quit;
-    game_state.quitting = true;
+    gameState.quitting = true;
   }
 
   // game state dump
   else if (text.startsWith(commands.state_dump.cmd)) {
-    var cmd = text.split(" ");
     if (cmd.length > 2) {
       output = "Usage for "+commands.state_dump.name+" command: "+commands.state_dump.cmd+" [outputfile]";
     } else if (cmd.length === 1) {
@@ -126,13 +124,14 @@ process.stdin.on('data', function(text) {
   }
 
   // hero selection
-  else if (!game_state.heroTwo) {
+  else if (!gameState["hero_two"]["klass"]) {
     if (!cards[text] || cards[text].type !== "hero") {
       output = messages.unrecognizedHero(text);
-    } else if (!game_state.hero_one.klass) {
+    } else if (!gameState["hero_one"]["klass"]) {
+      initializeHero(gameState, 'hero_one', text);
       output = messages.secondHeroPrompt;
     } else {
-      game_state.heroTwo = text;
+      initializeHero(gameState, 'hero_two', text);
       output = messages.gameStartPrompt;
     }  
   } 
@@ -140,6 +139,18 @@ process.stdin.on('data', function(text) {
   // game actions
   else {
 
+    // standard action
+    if (actions[cmd[0]]) {
+      output = actions[cmd[0]](gameState, cmd.slice(1));
+    } 
+    // playing a card
+    else if (util.prop_check(cards, [cmd[0], "type"], "hero", util.not_equal)) {
+      output = actions.play(cmd);
+    }
+    // error
+    else {
+      output = messages.unrecognizedCard(cmd[0]);
+    }
   }
   
   process.stdout.write(output+repl);
