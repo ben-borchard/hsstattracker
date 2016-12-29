@@ -1,20 +1,22 @@
 
+var messages = require("../properties/messages.js");
+var util = require("./util.js");
+
 
 module.exports = {
 
-  executeEffects: function(gameState, effects) {
-    var i;
-    for (i=0;i<effects.length;i++){
-      executeEffect(gameState, effect[i]);
+  damage: function(gameState, options) {
+    if (options.length !== 2) {
+      return {"error": messages.damageError(messages.argumentsError)}
     }
-  },
-
-  executeEffect: function(gameState, effect) {
-    
-  },
-
-  damage: function() {
-
+    var hero = options[0];
+    if (!util.validHeroOption(hero)) {
+      return {"error": messages.damageError(messages.invalidHeroOption)} 
+    }
+    var target = options[1];
+    if (!util.validTargetOption(target)) {
+      return {"error": messages.damageError(messages.invalidTargetOption)} 
+    }
   }
 
 }

@@ -15,41 +15,38 @@ var util =          require("./function/util.js");
 var fs =            require("fs");
 
 
+var h1 = messages.heroOne;
+var h2 = messages.heroOne;
 
 // initialize variables
 var gameState = {
-  "turn": "hero_one",
-  "hero_one": {
+  "turn": h2,
+  "cards_played_this_turn": 0,
+  h1: {
     "klass": "",
     "hero_power": {},
     "weapon": {},
-    "health": "30",
-    "armor": "0",
-    "attack": "0",
+    "health": 30,
+    "armor": 0,
+    "attack": 0,
     "immune": "false",
-    "shield": "false"
+    "shield": "false",
+    "board": []
   },
-  "hero_two": {
+  h2: {
     "klass": "",
     "hero_power": {},
     "weapon": {},
-    "health": "30",
-    "armor": "0",
+    "health": 30,
+    "armor": 0,
     "immune": "false",
-    "shield": "false"
+    "shield": "false",
+    "board": []
   },
   "triggers":{},
-  "board": {
-    "hero_one": {
-      "minions": []
-    },
-    "hero_two": {
-      "minions": []
-    }
-  },
   "secrets": {
-    "hero_one": {},
-    "hero_two": {}
+    h1: {},
+    h2: {}
   }
 };
 var repl = "\n> ";
@@ -81,6 +78,28 @@ var saveState = function(filename, exit) {
 var initializeHero = function(gameState, hero, heroClass) {
   gameState[hero]["klass"] = heroClass;
   gameState[hero]["hero_power"] = util.clone(cards[heroClass]["hero_power"]["standard"]);
+}
+
+var boardDump = function() {
+  var i;
+  console.log();
+  console.log(gameState[h1]["health"]);
+  console.log(getBoardStr(h1));
+  console.log();
+  console.log(getBoardStr(h2));
+  console.log(gameState[h2]["health"])
+  console.log();
+}
+
+var getBoardStr = function(hero) {
+  var board = gameState[hero]["board"];
+  var boardStr = "";
+  for(i=0;i<board.length;i++) {
+    boardStr = boardStr + board[i]
+    if (i !== board.length - 1) {
+      boardStr = boardStr + " | "
+    }
+  }
 }
 
 // configure repl mechanism
@@ -127,11 +146,11 @@ process.stdin.on('data', function(text) {
   else if (!gameState["hero_two"]["klass"]) {
     if (!cards[text] || cards[text].type !== "hero") {
       output = messages.unrecognizedHero(text);
-    } else if (!gameState["hero_one"]["klass"]) {
-      initializeHero(gameState, 'hero_one', text);
+    } else if (!gameState[h1]["klass"]) {
+      initializeHero(gameState, h1, text);
       output = messages.secondHeroPrompt;
     } else {
-      initializeHero(gameState, 'hero_two', text);
+      initializeHero(gameState, h2, text);
       output = messages.gameStartPrompt;
     }  
   } 
@@ -141,16 +160,21 @@ process.stdin.on('data', function(text) {
 
     // standard action
     if (actions[cmd[0]]) {
-      output = actions[cmd[0]](gameState, cmd.slice(1));
+      result = actions[cmd[0]](gameState, cmd.slice(1));
     } 
     // playing a card
-    else if (util.prop_check(cards, [cmd[0], "type"], "hero", util.not_equal)) {
-      output = actions.play(cmd);
-    }
-    // error
     else {
-      output = messages.unrecognizedCard(cmd[0]);
+      result = actions.play(gameState, cmd);
     }
+    if (result) {
+      if (result["error"]) {
+        output = result["error"];
+      } else if (effect) {
+        effect = result["effect"]
+        output = messages.promptEffect(effect["name"], effect["card"], effect["multiplicity"]);
+      }
+    }
+    
   }
   
   process.stdout.write(output+repl);

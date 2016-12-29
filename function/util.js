@@ -29,5 +29,17 @@ module.exports = {
 
   not_equal: function(a, b) {
     return a !== b;
+  },
+
+  isNumber: function(a) {
+    return typeof a === "number" || (typeof a == "object" && a.constructor === Number);
+  }, 
+
+  validTargetOption: function(target) {
+    return (target === "1" || target === "2" || target === "3" || target === "4" || target === "5" || target === "6" || target === "7" || target === "face");
+  },
+
+  validHeroOption: function(hero) {
+    return (hero === "1" || hero === "2"); 
   }
 }
