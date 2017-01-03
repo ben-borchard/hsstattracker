@@ -3,6 +3,10 @@
     "name": "state dump",
     "cmd": "state"
   },
+  "board_dump": {
+    "name": "board dump",
+    "cmd": "board"
+  },
   "quit": {
     "name": "quit",
     "cmd": "quit"

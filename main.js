@@ -16,13 +16,13 @@ var fs =            require("fs");
 
 
 var h1 = messages.heroOne;
-var h2 = messages.heroOne;
+var h2 = messages.heroTwo;
 
 // initialize variables
 var gameState = {
   "turn": h2,
   "cards_played_this_turn": 0,
-  h1: {
+  "hero_one": {
     "klass": "",
     "hero_power": {},
     "weapon": {},
@@ -33,7 +33,7 @@ var gameState = {
     "shield": "false",
     "board": []
   },
-  h2: {
+  "hero_two": {
     "klass": "",
     "hero_power": {},
     "weapon": {},
@@ -81,25 +81,27 @@ var initializeHero = function(gameState, hero, heroClass) {
 }
 
 var boardDump = function() {
-  var i;
-  console.log();
-  console.log(gameState[h1]["health"]);
-  console.log(getBoardStr(h1));
-  console.log();
-  console.log(getBoardStr(h2));
-  console.log(gameState[h2]["health"])
-  console.log();
+  str = "\n"
+  str = str + gameState[h1]["health"] + "\n";
+  str = str + getBoardStr(h1) + "\n";
+  str = str + "\n";
+  str = str + getBoardStr(h2) + "\n";
+  str = str + gameState[h2]["health"] + "\n";
+  str = str + "\n";
+  return str;
 }
 
 var getBoardStr = function(hero) {
+  var i;
   var board = gameState[hero]["board"];
   var boardStr = "";
   for(i=0;i<board.length;i++) {
-    boardStr = boardStr + board[i]
+    boardStr = boardStr + board[i]["name"];
     if (i !== board.length - 1) {
       boardStr = boardStr + " | "
     }
   }
+  return boardStr;
 }
 
 // configure repl mechanism
@@ -142,6 +144,11 @@ process.stdin.on('data', function(text) {
     }
   }
 
+  // board dump
+  else if (text.startsWith(commands.board_dump.cmd)) {
+    output = boardDump()
+  }
+
   // hero selection
   else if (!gameState["hero_two"]["klass"]) {
     if (!cards[text] || cards[text].type !== "hero") {
@@ -169,10 +176,14 @@ process.stdin.on('data', function(text) {
     if (result) {
       if (result["error"]) {
         output = result["error"];
-      } else if (effect) {
-        effect = result["effect"]
+      } else if (result["effect"]) {
+        effect = result["effect"];
         output = messages.promptEffect(effect["name"], effect["card"], effect["multiplicity"]);
+      } else {
+        output = "";
       }
+    } else {
+      output = "";
     }
     
   }

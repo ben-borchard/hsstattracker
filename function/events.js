@@ -47,24 +47,29 @@ module.exports = {
     // change the board
     var position = parseInt(options[0]);
     if (isNaN(position)) {
-      return messages.boardPosition;
+      return {"error": messages.boardPosition};
     }
     if (gameState[hero]["board"] === 7) {
-      return messages.boardFull;
+      return {"error": messages.boardFull};
     }
     placeMinion(gameState[hero]["board"], card, position);
 
     // deal with on-play effects
     options = options.slice(1);
-    var effect
+    var effect;
     if (card["effects"]["battlecry"]) {
       effect = [card["effects"]["battlecry"]["effect"]];
     } else if (card["effects"]["combo"] && gameState["cards_played_this_turn"] > 0) {
       effect = [card["effects"]["combo"]["effect"]]
     }
-    var result = handleEffect(gameState, effect, options)
-    if (result) {
-      return result;
+
+    if (effect) {
+      var result = handleEffect(gameState, effect, options)
+      if (result) {
+        return result;
+      }  
+    }
+    
     
 
     // triggers
@@ -110,7 +115,7 @@ var broadcastEvent = function(gameState, event) {
 }
 
 var handleEffect = function(gameState, effect, options) {
-  var result = effects["effect"](gameState, options);
+  var result = effects[effect](gameState, options);
   if (result) {
     if (result["error"]) {
       return result["error"];
