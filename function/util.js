@@ -1,5 +1,7 @@
 module.exports = {
 
+  // general utility
+
   clone: function(jsonObject) {
     return JSON.parse(JSON.stringify(jsonObject));
   },
@@ -31,9 +33,7 @@ module.exports = {
     return a !== b;
   },
 
-  isNumber: function(a) {
-    return typeof a === "number" || (typeof a == "object" && a.constructor === Number);
-  }, 
+  // game utility
 
   validTargetOption: function(target) {
     return (target === "1" || target === "2" || target === "3" || target === "4" || target === "5" || target === "6" || target === "7" || target === "face");
@@ -41,5 +41,9 @@ module.exports = {
 
   validHeroOption: function(hero) {
     return (hero === "1" || hero === "2"); 
+  }
+
+  hero: function(gameState) {
+    return gameState[gameState["turn"]];
   }
 }

@@ -1,22 +1,23 @@
 
-var messages = require("../properties/messages.js");
 var util = require("./util.js");
+var tracker = require("../stats/tracker.js");
 
 
 module.exports = {
 
-  damage: function(gameState, options) {
-    if (options.length !== 2) {
-      return {"error": messages.damageError(messages.argumentsError)}
+  damage: function(gameState, cardId, context) {
+
+  }
+
+  mana_turn: function(gameState, cardId, context) {
+    var amount = context["amount"]
+    util.mana(gameState) += amount;
+    if (util.mana(gameState) > 10) {
+      amount = util.mana(gameState) - 10;
+      util.mana(gameState) = 10;
     }
-    var hero = options[0];
-    if (!util.validHeroOption(hero)) {
-      return {"error": messages.damageError(messages.invalidHeroOption)} 
-    }
-    var target = options[1];
-    if (!util.validTargetOption(target)) {
-      return {"error": messages.damageError(messages.invalidTargetOption)} 
-    }
+
+    tracker.manaGain(gameState["turn"])
   }
 
 }

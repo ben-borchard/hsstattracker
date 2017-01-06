@@ -12,7 +12,10 @@ var cards =         require("./cards/cards-test.json");
 var commands =      require("./properties/commands.json");
 var messages =      require("./properties/messages.js");
 var util =          require("./function/util.js");
+
 var fs =            require("fs");
+
+const repl =        require("repl");
 
 
 var h1 = messages.heroOne;
@@ -20,7 +23,7 @@ var h2 = messages.heroTwo;
 
 // initialize variables
 var gameState = {
-  "turn": h2,
+  "turn": h1,
   "cards_played_this_turn": 0,
   "hero_one": {
     "klass": "",
@@ -31,6 +34,8 @@ var gameState = {
     "attack": 0,
     "immune": "false",
     "shield": "false",
+    "mana": 1,
+    "crystals": 1
     "board": []
   },
   "hero_two": {
@@ -41,15 +46,20 @@ var gameState = {
     "armor": 0,
     "immune": "false",
     "shield": "false",
+    "mana", 1,
+    "crystals", 1,
     "board": []
   },
   "triggers":{},
   "secrets": {
     h1: {},
     h2: {}
+  },
+  "card_stats": {
+    "hero_one": {},
+    "hero_two": {}
   }
 };
-var repl = "\n> ";
 var output = messages.firstHeroPrompt;
 
 // Get a pretty printed version of the game state object
@@ -65,7 +75,7 @@ var saveState = function(filename, exit) {
   try {
     fs.writeFileSync(filename, gameStateStr());  
     resp = "Game saved to "+filename;
-  } catch (e) {
+  } catch (e) { 
     resp = "Game could not be saved";
   }
   
@@ -80,6 +90,7 @@ var initializeHero = function(gameState, hero, heroClass) {
   gameState[hero]["hero_power"] = util.clone(cards[heroClass]["hero_power"]["standard"]);
 }
 
+// dump stats on the board including the hero's health
 var boardDump = function() {
   str = "\n"
   str = str + gameState[h1]["health"] + "\n";
@@ -91,12 +102,13 @@ var boardDump = function() {
   return str;
 }
 
+// convert a array version of a board into a readable string
 var getBoardStr = function(hero) {
   var i;
   var board = gameState[hero]["board"];
   var boardStr = "";
   for(i=0;i<board.length;i++) {
-    boardStr = boardStr + board[i]["name"];
+    boardStr = boardStr + board[i]["name"] + ", " + board[i]["attack"] + "-" + board[i]["health"];
     if (i !== board.length - 1) {
       boardStr = boardStr + " | "
     }
@@ -104,13 +116,8 @@ var getBoardStr = function(hero) {
   return boardStr;
 }
 
-// configure repl mechanism
-process.stdin.resume();
-process.stdin.setEncoding("utf8");
-
-// start repl
-process.stdout.write(output+repl);
-process.stdin.on('data', function(text) {
+// handle text from the repl
+var handleInput = function(text, context, filename, callback) {
   text = text.trim()
   var cmd = text.split(" ");
 
@@ -188,5 +195,14 @@ process.stdin.on('data', function(text) {
     
   }
   
-  process.stdout.write(output+repl);
-});
+  callback(null, output);
+}
+
+// Silly but needed to get the output printed the way we want
+var writer = function(output) {
+  return output;
+}
+
+// initial prompt and begin the repl
+process.stdout.write(output+"\n")
+const r = repl.start({prompt: "> ", eval: handleInput, writer: writer});

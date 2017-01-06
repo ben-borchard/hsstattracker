@@ -2,40 +2,47 @@
   "warrior": {
     "type": "hero",
     "hero_power": {
-      "standard": {
-        "armor": 2
-      },
-      "justicar": {
-        "armor": 4
-      }
+      "standard": [
+        {
+          "name": "armor",
+          "amount": 2
+        }
+      ],
+      "justicar": [
+        {
+          "name": "armor",
+          "amount": 4
+        }
+      ],
     }
   },
-  "rogue": {
+  "druid": {
+    "type": "hero", 
+    "hero_power": {
+      "standard": [
+        {
+          "name": "armor", 
+          "amount": 1
+        },
+        {
+          "name": "hero_attack",
+          "amount": 1
+        }
+      ]
+    }
+  },
+  "warlock": {
     "type": "hero",
     "hero_power": {
-      "standard": {
-        "weapon": {
-          "attack": 1,
-          "durability" :2
-        }
-      },
-      "justicar": {
-        "case": {
-          "has_weapon": {
-            "weapon_dmg": 1
-          },
-          "else": {
-            "weapon": {
-              "attack": 1,
-              "durability": 2
-            }
-          }
-        }
-      }
+        "standard": {
+        "draw": 1,
+        "hero_damage": 2
+      }  
     }
   },
   "war_axe": {
     "type": "weapon",
+    "mana_cost": 2,
     "effects": {
       "weapon": {
         "attack": 3,
@@ -45,39 +52,52 @@
   },
   "river_crock": {
     "type": "minion",
+    "mana_cost": 2,
     "attack": 2,
     "health": 3,
-    "race": "beast",
-    "effects": {} 
+    "race": "beast", 
   },
   "goldshire_footman": {
     "type": "minion",
+    "mana_cost": 1,
     "attack": 1,
     "health": 2,
-    "effects": {
-      "taunt": "true"
-    }
+    "taunt": true
   },
   "elven_archer": {
     "type": "minion",
+    "mana_cost": 1,
     "attack": 1,
     "health": 1,
-    "effects": {
-      "battlecry": {
-        "effect": "damage",
+    "battlecry": [
+      {
+        "name": "damage",
         "amount": 1
       }
-    }
+    ]
   },
   "yeti": {
     "type": "minion",
+    "mana_cost": 4,
     "attack": 4,
     "health": 5,
-    "effects": {}
   },
   "raven": {
     "type": "minion",
+    "mana_cost": 1,
     "attack": 2,
-    "health": 2
+    "health": 2, 
+    "race": "beast",
+  },
+  "innervate": {
+    "type": "spell",
+    "mana_cost": 0,
+    "effects": [
+      {
+        "name": "mana_turn",
+        "amount": 2
+      }
+    ]
+      
   }
 }

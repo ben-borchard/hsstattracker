@@ -1,0 +1,6 @@
+{
+  "name": "hs-stat-tracker",
+  "version": "0.0.0",
+  "description": "Tracks stats for a hearthstone game",
+  "author": "Ben Borchard"
+}

@@ -10,7 +10,7 @@ module.exports = {
 
   // end the current turn
   end_turn: function(gameState) {
-    effects.end_turn(gameState);
+    events.end_turn(gameState);
   },
 
   // attack (with a minion or hero)

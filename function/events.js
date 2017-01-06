@@ -3,15 +3,14 @@
  * given a specific game status object and cards database object
  */
 
-var cards = require("../cards/cards-test.json");
-var effects = require("./effects.js");
-var messages = require("../properties/messages.js");
-var util = require("./util.js");
+var cards =           require("../cards/cards-test.json");
+var effects =         require("./effects.js");
+var messages =        require("../properties/messages.js");
+var util =            require("./util.js");
+var tracker =         require("../stats/tracker.js");
 
 
 module.exports = {
-
-  /*********** GAME PUBLIC API ***********/
 
   attack: function(gameState, attacker, attackee) {
 
@@ -20,9 +19,13 @@ module.exports = {
   play_card: function(gameState, options) {
     var result;
     var cardName = options[0];
-    var card = cards[cardName]
+    var hero = util.hero(gameState);
+    var card = cards[cardName];
     card["name"] = cardName;
+
+    card["trackerId"] = tracker.initCard(gameState["card_stats"][hero], cardName, card["mana_cost"]);
     broadcastEvent(gameState, "play_card");
+
     // minion
     if (card["type"] === "minion") {
       result = this.play_minion(gameState, card, options.slice(1));
@@ -37,14 +40,17 @@ module.exports = {
     }
     gameState["cards_played_this_turn"] += 1;
 
+    if (result["error"]) {
+      tracker.removeCard(gameState["card_stats"][hero], card["trackerId"]);
+    }
+
     return result;
   },
 
   play_minion: function(gameState, card, options) {
-    var i;
-    var hero = gameState["turn"];
-
-    // change the board
+    var hero = util.hero(gameState);
+    
+    // error check
     var position = parseInt(options[0]);
     if (isNaN(position)) {
       return {"error": messages.boardPosition};
@@ -52,30 +58,30 @@ module.exports = {
     if (gameState[hero]["board"] === 7) {
       return {"error": messages.boardFull};
     }
+
+    // change the board
     placeMinion(gameState[hero]["board"], card, position);
 
     // deal with on-play effects
     options = options.slice(1);
-    var effect;
-    if (card["effects"]["battlecry"]) {
-      effect = [card["effects"]["battlecry"]["effect"]];
+    var cardEffects;
+    if (card["battlecry"]) {
+      cardEffects = card["battlecry"];
     } else if (card["effects"]["combo"] && gameState["cards_played_this_turn"] > 0) {
-      effect = [card["effects"]["combo"]["effect"]]
+      cardEffects = card["combo"]
     }
 
-    if (effect) {
-      var result = handleEffect(gameState, effect, options)
+    if (effects) {
+      var result = handleEffects(gameState, cardEffects, options)
       if (result) {
         return result;
       }  
     }
-    
-    
 
     // triggers
     broadcastEvent(gameState, "play_minion")
-    
 
+    return {};
   },
 
   play_spell: function(gameState, card, options) {
@@ -95,12 +101,18 @@ module.exports = {
     broadcastEvent(gameState, "end_turn");
 
     // switch turn    
-    if (gameState["turn"] === messages.heroOne) {
-      gameState["turn"] = messages.heroTwo;
+    if (util.hero(gameState) === messages.heroOne) {
+      util.hero(gameState) = messages.heroTwo;
     } else {
-      gameState["turn"] = messages.heroOne;
+      util.hero(gameState) = messages.heroOne;
     }
     gameState["cards_played_this_turn"] = 0;
+
+    // add mana
+    if (util.hero(gameState)["crystals"] < 10) {
+      util.hero(gameState)["crystals"] += 1;
+      util.mana(gameState) = gameState[gameState.turn]["crystals"];
+    }
 
     broadcastEvent(gameState, "start_turn");    
   }
@@ -114,8 +126,15 @@ var broadcastEvent = function(gameState, event) {
 
 }
 
-var handleEffect = function(gameState, effect, options) {
-  var result = effects[effect](gameState, options);
+var handleEffects = function(gameState, cardEffects) {
+  var i;
+  for (i=0;i<cardEffects.length;i++) {
+    handleEffect(gameState, cardEffects[i])
+  }
+}
+
+var handleEffect = function(gameState, effect) {
+  var result = effects[effect](gameState, effect);
   if (result) {
     if (result["error"]) {
       return result["error"];
@@ -141,7 +160,8 @@ var placeMinion = function(board, card, position) {
     "name": card["name"],
     "attack": card["attack"],
     "health": card["health"],
-    "race": card["race"]
+    "race": card["race"],
+    "trackerId": card["trackerId"]
   }
 
   for (i=0;i<=board.length;i++) {
